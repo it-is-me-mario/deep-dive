@@ -73,12 +73,34 @@ md(r"""## 1. Installation and setup
 We install the latest version of MARIO published on PyPI. ⚠️ Note: the package on PyPI is called
 **`mariopy`**, but the module you import in Python is called **`mario`**.
 
-> The first installation takes ~1 minute. If Colab asks you to **restart the runtime**
-> (`Restart runtime`) after installation, do it and then **re-run** the import cell.
+> ### 🟥 You WILL see red warnings — this is normal, don't panic!
+>
+> MARIO pins specific versions of `pandas` and `numpy`. When pip installs them you will see
+> messages like *"pip's dependency resolver … dependency conflicts … google-colab … gradio …
+> numba …"*. **These warnings are harmless**: they refer to other packages pre-installed by Colab
+> (gradio, google-colab, numba…) that have nothing to do with MARIO. You can ignore them.
+>
+> Because `numpy`/`pandas` get upgraded, **Colab needs to restart the runtime once**. The cell
+> below does it **automatically**: you will see *"Your session crashed/restarted"* — that is
+> **intended**. After the restart, simply continue from the **next** cell (the `import mario` one)
+> and **do not re-run** the install cell.
 """)
 
-code(r"""# Install MARIO (course version) — run once per session
-%pip install -q mariopy==1.0.2""")
+code(r"""# Install MARIO (course version). Run this cell ONCE.
+%pip install -q mariopy==1.0.2
+
+# On Colab, upgrading numpy/pandas requires a one-time runtime restart so the new
+# versions load cleanly. We trigger it automatically here. This is NORMAL:
+# after the restart, just continue from the NEXT cell (do not re-run this one).
+try:
+    import google.colab  # noqa: F401  (present only on Colab)
+    print("\n✅ MARIO installed. Restarting the runtime to load the new numpy/pandas...")
+    print("   This is expected. After it restarts, run the NEXT cell. Do NOT re-run this one.")
+    import IPython
+    IPython.Application.instance().kernel.do_shutdown(True)
+except ImportError:
+    # Not on Colab (e.g. local Jupyter): no restart needed.
+    print("✅ MARIO installed (no runtime restart needed outside Colab).")""")
 
 code(r"""import mario
 import pandas as pd
