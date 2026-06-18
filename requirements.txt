@@ -1,0 +1,14 @@
+# Dipendenze del corso su MARIO.
+# Il notebook installa MARIO da solo su Colab; questo file serve per lavorare/rigenerare in locale.
+mariopy==1.0.2
+
+# Tooling per rigenerare e validare il notebook
+nbformat
+nbconvert
+nbclient
+ipykernel
+
+# Usate dalle celle del notebook
+matplotlib
+openpyxl
+pandas

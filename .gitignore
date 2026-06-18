@@ -1,0 +1,15 @@
+# Artefatti generati eseguendo il notebook
+Output/
+*_export/
+mario_export/
+aggregazione.xlsx
+shock.xlsx
+*.html
+notebooks/executed_check.ipynb
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
