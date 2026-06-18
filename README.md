@@ -1,64 +1,64 @@
-# Corso pratico su MARIO — Analisi Input-Output con Python
+# Hands-on course on MARIO — Input-Output Analysis with Python
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/Corso_MARIO.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/MARIO_course.ipynb)
 
-Materiale didattico per imparare a usare **[MARIO](https://mario-suite.readthedocs.io/)**
-(*Multifunctional Analysis of Regions through Input-Output*), il pacchetto Python del
-Politecnico di Milano / eNextGen per costruire e analizzare tabelle Input-Output (IOT) e
-Supply & Use (SUT).
+Teaching material to learn how to use **[MARIO](https://mario-suite.readthedocs.io/)**
+(*Multifunctional Analysis of Regions through Input-Output*), the Python package from
+Politecnico di Milano / eNextGen for building and analysing Input-Output Tables (IOT) and
+Supply & Use Tables (SUT).
 
-Il corso è costruito a partire dalla [user guide ufficiale](https://mario-suite.readthedocs.io/en/latest/user_guide/index.html)
-ed è pensato per essere svolto su **Google Colab** da 10–20 studenti contemporaneamente.
+The course is built from the [official user guide](https://mario-suite.readthedocs.io/en/latest/user_guide/index.html)
+and is designed to be run on **Google Colab** by 10–20 students at the same time.
 
-## 📓 Il notebook
+## 📓 The notebook
 
-[`notebooks/Corso_MARIO.ipynb`](notebooks/Corso_MARIO.ipynb) è un notebook autoconsistente che copre,
-in italiano e con celle eseguibili + esercizi:
+[`notebooks/MARIO_course.ipynb`](notebooks/MARIO_course.ipynb) is a self-contained notebook that
+covers, with runnable cells + exercises:
 
-| Parte | Argomenti |
+| Part | Topics |
 |---|---|
-| **1 — Fondamenti** | concetti IO (Z, Y, X, V, E, Leontief), parsing dei dati, ispezione, calcolo delle matrici, estrazione indicatori (PIL), visualizzazione, esportazione |
-| **2 — Trasformazioni** | aggregazione, estensioni, analisi di shock/scenari, aggiunta/split di settori, SUT→IOT, MRIO→SRIO, Isard→Chenery-Moses |
-| **3 — Avanzato** | gas serra (GHG), analisi delle catene di fornitura (trades, embodied, linkages), structural path analysis (SPA) |
+| **1 — Foundations** | IO concepts (Z, Y, X, V, E, Leontief), data parsing, inspection, matrix computation, indicator extraction (GDP), visualization, export |
+| **2 — Transformations** | aggregation, extensions, shock/scenario analysis, adding/splitting sectors, SUT→IOT, MRIO→SRIO, Isard→Chenery-Moses |
+| **3 — Advanced** | greenhouse gases (GHG), supply-chain analysis (trades, embodied, linkages), structural path analysis (SPA) |
 
-Tutto il notebook gira sul **database di test integrato** in MARIO
-(`mario.load_test("IOT")` / `"SUT"`): **nessun download pesante**, funziona identico per tutti.
-Ogni cella di codice è stata eseguita end-to-end senza errori contro **mariopy 1.0.2**.
+The whole notebook runs on MARIO's **built-in test database**
+(`mario.load_test("IOT")` / `"SUT"`): **no heavy downloads**, identical for everyone.
+Every code cell was executed end-to-end without errors against **mariopy 1.0.2**.
 
-## 🚀 Come usarlo (studenti)
+## 🚀 How to use it (students)
 
-1. Apri il notebook su Colab (carica il file `.ipynb` su <https://colab.research.google.com>,
-   oppure usa il pulsante *Open in Colab* dopo che il repo è su GitHub).
-2. `File ▸ Salva una copia in Drive` per avere la tua copia personale.
-3. Esegui le celle dall'alto verso il basso (`Shift + Invio`). La prima installa MARIO.
-4. Completa le celle 🧩 **Esercizio**.
+1. Open the notebook in Colab (use the *Open in Colab* badge above, or upload the `.ipynb` file to
+   <https://colab.research.google.com>).
+2. `File ▸ Save a copy in Drive` to get your own personal copy.
+3. Run the cells from top to bottom (`Shift + Enter`). The first one installs MARIO.
+4. Complete the 🧩 **Exercise** cells.
 
-> ⚠️ Il pacchetto su PyPI si chiama **`mariopy`**, ma in Python si importa come **`mario`**.
+> ⚠️ The package on PyPI is called **`mariopy`**, but in Python you import it as **`mario`**.
 
-## 🗄️ Database reali (EXIOBASE, EORA, FIGARO…)
+## 🗄️ Real-world databases (EXIOBASE, EORA, FIGARO…)
 
-I database reali sono troppo grandi per essere scaricati live in aula: vanno **scaricati a parte
-e caricati da file locali**. Il notebook mostra il pattern (`download_*` + `parse_*`) nella
-sezione 3.2. Su Colab si possono caricare con `google.colab.files.upload()` o montando Drive.
+Real databases are too large to download live in a classroom: they must be **downloaded separately
+and loaded from local files**. The notebook shows the pattern (`download_*` + `parse_*`) in
+section 3.2. On Colab you can upload them with `google.colab.files.upload()` or by mounting Drive.
 
-## 🔧 Per il docente / rigenerare il notebook
+## 🔧 For the instructor / regenerating the notebook
 
-Il notebook è generato da uno script versionato, così è facile da mantenere e rivedere:
+The notebook is generated from a versioned script, so it is easy to maintain and review:
 
 ```bash
 pip install -r requirements.txt
-python tools/build_notebook.py        # rigenera notebooks/Corso_MARIO.ipynb
+python tools/build_notebook.py        # regenerates notebooks/MARIO_course.ipynb
 ```
 
-Per ri-validare che tutte le celle eseguano senza errori:
+To re-validate that all cells run without errors:
 
 ```bash
 jupyter nbconvert --to notebook --execute --allow-errors \
-  --output executed_check.ipynb notebooks/Corso_MARIO.ipynb
+  --output executed_check.ipynb notebooks/MARIO_course.ipynb
 ```
 
-## 📚 Risorse
+## 📚 Resources
 
 - User guide: <https://mario-suite.readthedocs.io/en/latest/user_guide/index.html>
-- Documentazione: <https://mario-suite.readthedocs.io/>
-- Codice sorgente: <https://github.com/it-is-me-mario/MARIO>
+- Documentation: <https://mario-suite.readthedocs.io/>
+- Source code: <https://github.com/it-is-me-mario/MARIO>

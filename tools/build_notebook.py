@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Genera il notebook didattico per il corso su MARIO.
+"""Build the teaching notebook for the MARIO course.
 
-Eseguire:  python tools/build_notebook.py
-Produce:   notebooks/Corso_MARIO.ipynb
+Run:      python tools/build_notebook.py
+Produces: notebooks/MARIO_course.ipynb
 
-Il contenuto e' tarato sull'API reale di mariopy 1.0.2 (verificata localmente).
+The content targets the real API of mariopy 1.0.2 (verified locally).
 """
 import json
 import os
@@ -13,7 +13,7 @@ CELLS = []
 
 
 def _src(text):
-    # nbformat vuole una lista di righe, ognuna con \n tranne (eventualmente) l'ultima
+    # nbformat expects a list of lines, each ending with \n except (possibly) the last
     return text.rstrip("\n").splitlines(keepends=True)
 
 
@@ -36,138 +36,139 @@ def code(text):
 
 
 # ---------------------------------------------------------------------------
-# 0. Titolo e introduzione
+# 0. Title and introduction
 # ---------------------------------------------------------------------------
-md(r"""# Corso pratico su **MARIO** — Analisi Input-Output con Python
+md(r"""# Hands-on course on **MARIO** — Input-Output Analysis with Python
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/Corso_MARIO.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/MARIO_course.ipynb)
 
-**MARIO** (*Multifunctional Analysis of Regions through Input-Output*) è un pacchetto Python
-sviluppato dal Politecnico di Milano ed eNextGen per costruire e analizzare
-**tabelle Input-Output (IOT)** e **tabelle Supply & Use (SUT)**, sia mono- che multi-regionali,
-in unità monetarie o fisiche.
+**MARIO** (*Multifunctional Analysis of Regions through Input-Output*) is a Python package
+developed by Politecnico di Milano and eNextGen for building and analysing
+**Input-Output Tables (IOT)** and **Supply & Use Tables (SUT)**, both single- and multi-regional,
+in monetary or physical units.
 
-Questo notebook è pensato per essere eseguito su **Google Colab** da molti studenti
-contemporaneamente: usa il **database di test integrato** in MARIO, quindi **non richiede
-alcun download di dati pesanti** e funziona in modo identico per tutti.
+This notebook is designed to be run on **Google Colab** by many students at the same time:
+it uses MARIO's **built-in test database**, so it requires **no heavy data downloads** and
+behaves identically for everyone.
 
 ---
 
-### Come usare questo notebook (leggere prima di iniziare)
+### How to use this notebook (read before you start)
 
-1. **Fai una copia tua**: menu `File ▸ Salva una copia in Drive`. Lavorerai sulla tua copia
-   personale senza disturbare gli altri.
-2. Esegui le celle **una alla volta**, dall'alto verso il basso (`Shift + Invio`).
-3. Le celle marcate con 🧩 **Esercizio** sono per te: completa il codice dove vedi `# TODO`.
-4. Le celle marcate con ⚙️ **Avanzato** mostrano l'API per workflow che richiedono dati reali:
-   leggile, ma potrebbero non produrre un risultato numerico significativo sul mini-database di test.
+1. **Make your own copy**: menu `File ▸ Save a copy in Drive`. You will work on your own personal
+   copy without disturbing the others.
+2. Run the cells **one at a time**, from top to bottom (`Shift + Enter`).
+3. Cells marked with 🧩 **Exercise** are for you: complete the code where you see `# TODO`.
+4. Cells marked with ⚙️ **Advanced** show the API for workflows that need real-world data:
+   read them, but they may not produce a meaningful numerical result on the tiny test database.
 
-> Tempo stimato: 2–3 ore. Buon lavoro! 🚀
+> Estimated time: 2–3 hours. Have fun! 🚀
 """)
 
 # ---------------------------------------------------------------------------
 # 1. Setup
 # ---------------------------------------------------------------------------
-md(r"""## 1. Installazione e setup
+md(r"""## 1. Installation and setup
 
-Installiamo l'ultima versione di MARIO pubblicata su PyPI. ⚠️ Attenzione: il pacchetto su PyPI
-si chiama **`mariopy`**, ma il modulo da importare in Python si chiama **`mario`**.
+We install the latest version of MARIO published on PyPI. ⚠️ Note: the package on PyPI is called
+**`mariopy`**, but the module you import in Python is called **`mario`**.
 
-> La prima installazione richiede ~1 minuto. Se Colab chiede di **riavviare il runtime**
-> (`Restart runtime`) dopo l'installazione, fallo e poi **riesegui** la cella di import.
+> The first installation takes ~1 minute. If Colab asks you to **restart the runtime**
+> (`Restart runtime`) after installation, do it and then **re-run** the import cell.
 """)
 
-code(r"""# Installa MARIO (versione del corso) — eseguire una sola volta per sessione
+code(r"""# Install MARIO (course version) — run once per session
 %pip install -q mariopy==1.0.2""")
 
 code(r"""import mario
 import pandas as pd
 import numpy as np
 
-print("Versione di MARIO:", mario.__version__)
+print("MARIO version:", mario.__version__)
 
-# Riduciamo la verbosità dei log per tenere pulito l'output del notebook
+# Reduce log verbosity to keep the notebook output clean
 try:
     mario.set_log_verbosity("ERROR")
 except Exception:
     pass""")
 
 # ---------------------------------------------------------------------------
-# 2. Concetti di base
+# 2. Core concepts
 # ---------------------------------------------------------------------------
-md(r"""## 2. I concetti dell'analisi Input-Output (in 5 minuti)
+md(r"""## 2. Input-Output concepts (in 5 minutes)
 
-Una tabella **Input-Output** descrive i flussi economici di un sistema:
+An **Input-Output** table describes the economic flows of a system:
 
-- **Z** — matrice delle *transazioni intermedie*: quanto il settore *i* vende al settore *j*.
-- **Y** — *domanda finale* (consumi delle famiglie, investimenti, esportazioni…).
-- **X** — *produzione totale* di ogni settore.
-- **V** — *fattori della produzione* / valore aggiunto (salari, tasse, capitale…).
-- **E** — *conti satellite* / estensioni ambientali e sociali (CO₂, occupazione…).
+- **Z** — *intermediate transactions* matrix: how much sector *i* sells to sector *j*.
+- **Y** — *final demand* (household consumption, investments, exports…).
+- **X** — *total output* of each sector.
+- **V** — *factors of production* / value added (wages, taxes, capital…).
+- **E** — *satellite accounts* / environmental and social extensions (CO₂, employment…).
 
-Da queste matrici "di flusso" MARIO calcola le matrici "a **coefficienti**" e i modelli:
+From these "flow" matrices MARIO computes the "**coefficient**" matrices and the models:
 
-| Simbolo MARIO | Significato |
+| MARIO symbol | Meaning |
 |---|---|
-| `z` | coefficienti tecnici (Z normalizzata per la produzione) |
-| `v`, `e` | coefficienti di valore aggiunto / conti satellite |
-| `w` | inversa di Leontief, `w = (I − z)⁻¹` |
-| `f` | intensità (footprint) dei conti satellite |
-| `m` | moltiplicatori |
-| `p` | indici di prezzo |
+| `z` | technical coefficients (Z normalised by output) |
+| `v`, `e` | value-added / satellite-account coefficients |
+| `w` | Leontief inverse, `w = (I − z)⁻¹` |
+| `f` | footprint intensities of satellite accounts |
+| `m` | multipliers |
+| `p` | price indices |
 
-> In MARIO **le lettere maiuscole = flussi assoluti** (Z, V, E, Y, X) e
-> **le minuscole = coefficienti** (z, v, e, w, f, m, p). Lo useremo continuamente.
+> In MARIO **uppercase = absolute flows** (Z, V, E, Y, X) and
+> **lowercase = coefficients** (z, v, e, w, f, m, p). We will use this constantly.
 
-Non serve ricordare tutto a memoria: MARIO calcola le matrici **automaticamente** quando servono.
+You don't need to memorise everything: MARIO computes the matrices **automatically** when needed.
 """)
 
 # ---------------------------------------------------------------------------
-# 3. Parsing / caricamento dati
+# 3. Parsing / loading data
 # ---------------------------------------------------------------------------
-md(r"""## 3. Caricare i dati (parsing)
+md(r"""## 3. Loading data (parsing)
 
-MARIO può leggere decine di database (EXIOBASE, EORA, FIGARO, WIOD, OECD, EUROSTAT…) oltre a
-database personalizzati da Excel/CSV/Parquet. Per imparare useremo il **database di test integrato**,
-che si carica con una sola riga e rappresenta un'economia giocattolo con 2 regioni e 3 settori.
+MARIO can read dozens of databases (EXIOBASE, EORA, FIGARO, WIOD, OECD, EUROSTAT…) as well as
+custom databases from Excel/CSV/Parquet. To learn, we will use the **built-in test database**,
+which loads in a single line and represents a toy economy with 2 regions and 3 sectors.
 """)
 
-code(r"""# Carichiamo una tabella Input-Output di test
+code(r"""# Load a test Input-Output table
 db = mario.load_test("IOT")
 
-print(db)        # riepilogo: nome, tipo tabella, scenari, dimensioni di ogni set
-print("\nTipo di tabella:", db.table_type)
-print("Multi-regionale?", db.is_multi_region)""")
+print(db)        # summary: name, table type, scenarios, size of each set
+print("\nTable type:", db.table_type)
+print("Multi-regional?", db.is_multi_region)""")
 
-md(r"""### 3.1 Database personalizzato da Excel
+md(r"""### 3.1 Custom database from Excel
 
-Se hai i tuoi dati in un foglio Excel formattato secondo lo schema di MARIO, li carichi così:
+If you have your own data in an Excel sheet formatted according to MARIO's schema, you load it
+like this:
 
 ```python
 db = mario.parse_from_excel(
-    path="mia_tabella.xlsx",
-    table="IOT",      # oppure "SUT"
-    mode="flows",     # "flows" (valori assoluti) o "coefficients"
+    path="my_table.xlsx",
+    table="IOT",      # or "SUT"
+    mode="flows",     # "flows" (absolute values) or "coefficients"
 )
 ```
 
-Per ottenere un **template vuoto** già formattato da compilare:
+To get an empty, ready-to-fill **template**:
 
 ```python
-mario.write_parse_template(...)   # vedi help(mario.write_parse_template)
+mario.write_parse_template(...)   # see help(mario.write_parse_template)
 ```
 """)
 
-md(r"""### 3.2 Database "grandi" (EXIOBASE, EORA, FIGARO…)
+md(r"""### 3.2 "Large" databases (EXIOBASE, EORA, FIGARO…)
 
-I database reali pesano da centinaia di MB a diversi GB: **vanno scaricati a parte e caricati da
-file locali**, non on-the-fly in un'aula con 20 persone. Il flusso tipico è:
+Real databases range from hundreds of MB to several GB: they **must be downloaded separately and
+loaded from local files**, not on-the-fly in a classroom of 20 people. The typical flow is:
 
 ```python
-# 1) Scarica una volta (richiede tempo e spazio su disco)
-mario.download_exiobase_monetary(path="exiobase_data")   # esempio
+# 1) Download once (takes time and disk space)
+mario.download_exiobase_monetary(path="exiobase_data")   # example
 
-# 2) Carica dai file scaricati
+# 2) Load from the downloaded files
 db = mario.parse_exiobase(
     table="IOT",
     unit="Monetary",
@@ -175,402 +176,401 @@ db = mario.parse_exiobase(
 )
 ```
 
-> 💡 In Colab puoi caricare i file scaricati con `from google.colab import files; files.upload()`
-> oppure montando Google Drive (`from google.colab import drive; drive.mount('/content/drive')`).
-> Per il resto del corso restiamo sul database di test, che si comporta esattamente come uno reale.
+> 💡 In Colab you can upload the downloaded files with `from google.colab import files; files.upload()`
+> or by mounting Google Drive (`from google.colab import drive; drive.mount('/content/drive')`).
+> For the rest of the course we stick with the test database, which behaves just like a real one.
 """)
 
 # ---------------------------------------------------------------------------
-# 4. Ispezione di base
+# 4. Basic inspection
 # ---------------------------------------------------------------------------
-md(r"""## 4. Ispezione di base
+md(r"""## 4. Basic inspection
 
-Prima di calcolare qualsiasi cosa, esploriamo *cosa contiene* il database.
+Before computing anything, let's explore *what the database contains*.
 """)
 
-code(r"""# Quali "set" (dimensioni) ha il database?
-print("Set disponibili:", db.sets)
+code(r"""# Which "sets" (dimensions) does the database have?
+print("Available sets:", db.sets)
 
-# Quali scenari? (di default ne esiste uno solo: 'baseline')
-print("Scenari:", db.scenarios)
+# Which scenarios? (by default there is only one: 'baseline')
+print("Scenarios:", db.scenarios)
 
-# Elenco degli elementi di un set
-print("\nRegioni :", list(db.get_index("Region")))
-print("Settori :", list(db.get_index("Sector")))
-print("Fattori :", list(db.get_index("Factor of production")))
-print("Conti satellite:", list(db.get_index("Satellite account")))""")
+# List the items of a set
+print("\nRegions :", list(db.get_index("Region")))
+print("Sectors :", list(db.get_index("Sector")))
+print("Factors :", list(db.get_index("Factor of production")))
+print("Satellite accounts:", list(db.get_index("Satellite account")))""")
 
-code(r"""# Cercare un'etichetta per nome (utile sui database reali con migliaia di settori)
-print("Risultati ricerca 'Agri':", db.search("Sector", "Agri"))
+code(r"""# Search a label by name (handy on real databases with thousands of sectors)
+print("Search results for 'Agri':", db.search("Sector", "Agri"))
 
-# Indice completo di tutti i set in un colpo solo
+# Full index of every set in one go
 db.get_index("all")""")
 
 # ---------------------------------------------------------------------------
-# 5. Calcolo delle matrici
+# 5. Computing matrices
 # ---------------------------------------------------------------------------
-md(r"""## 5. Calcolare le matrici
+md(r"""## 5. Computing the matrices
 
-Il cuore di MARIO. Il metodo `calc_all([...])` calcola le matrici richieste **risolvendo
-automaticamente tutte le dipendenze** (es. per `w` serve `z`, per `z` serve `Z` e `X`…).
-Le matrici calcolate diventano poi accessibili come attributi (`db.X`, `db.z`, `db.w`, …) e
-sono normali `pandas.DataFrame`.
+The heart of MARIO. The method `calc_all([...])` computes the requested matrices, **automatically
+resolving all dependencies** (e.g. `w` needs `z`, `z` needs `Z` and `X`…). The computed matrices
+are then accessible as attributes (`db.X`, `db.z`, `db.w`, …) and are plain `pandas.DataFrame`.
 """)
 
-code(r"""# Calcoliamo le matrici principali
+code(r"""# Compute the main matrices
 db.calc_all(["X", "z", "Z", "Y", "v", "e", "w"])
 
-# Ora sono accessibili come DataFrame pandas
-print("X (produzione totale) shape:", db.X.shape)
-print("z (coefficienti tecnici) shape:", db.z.shape)
-print("w (inversa di Leontief) shape:", db.w.shape)
+# Now they are accessible as pandas DataFrames
+print("X (total output) shape:", db.X.shape)
+print("z (technical coefficients) shape:", db.z.shape)
+print("w (Leontief inverse) shape:", db.w.shape)
 
-db.z   # visualizziamo i coefficienti tecnici""")
+db.z   # display the technical coefficients""")
 
-code(r"""# La produzione totale per settore e regione
+code(r"""# Total output by sector and region
 db.X""")
 
-code(r"""# 'explain' spiega a parole come MARIO calcola una matrice
+code(r"""# 'explain' describes in words how MARIO computes a matrix
 print(db.explain("w"))""")
 
-md(r"""> ⚙️ **Su database grandi** l'inversione di Leontief può essere pesante. MARIO permette di
-> controllare la strategia di calcolo con `mario.ComputeOptions(...)` passata a
-> `db.resolve("w", compute_options=...)`. Per il database di test non serve.
+md(r"""> ⚙️ **On large databases** the Leontief inversion can be heavy. MARIO lets you control the
+> computation strategy with `mario.ComputeOptions(...)` passed to
+> `db.resolve("w", compute_options=...)`. Not needed for the test database.
 """)
 
 # ---------------------------------------------------------------------------
-# 6. Estrazione dati e indicatori
+# 6. Extracting data and indicators
 # ---------------------------------------------------------------------------
-md(r"""## 6. Estrarre dati e indicatori
+md(r"""## 6. Extracting data and indicators
 
-Oltre alle matrici grezze, MARIO offre metodi di alto livello per estrarre dati pronti
-all'analisi e indicatori economici come il **PIL**.
+Beyond the raw matrices, MARIO offers high-level methods to extract analysis-ready data and
+economic indicators such as **GDP**.
 """)
 
-code(r"""# PIL per regione (somma del valore aggiunto)
+code(r"""# GDP by region (sum of value added)
 db.GDP()""")
 
-code(r"""# get_data: estrae una o più matrici in forma "lunga" (tidy), comoda per pandas/plot
-dati = db.get_data(["X", "Y"])
-type(dati), len(dati)""")
+code(r"""# get_data: extracts one or more matrices in "long" (tidy) form, handy for pandas/plotting
+data = db.get_data(["X", "Y"])
+type(data), len(data)""")
 
 # ---------------------------------------------------------------------------
-# 7. Visualizzazione
+# 7. Visualization
 # ---------------------------------------------------------------------------
-md(r"""## 7. Visualizzazione
+md(r"""## 7. Visualization
 
-MARIO ha funzioni di plotting interattive (basate su Plotly). In Colab le figure interattive di
-MARIO vengono **salvate come file HTML** che puoi scaricare. Per un grafico **inline immediato**,
-useremo anche `matplotlib` sui DataFrame restituiti da MARIO.
+MARIO has interactive plotting functions (built on Plotly). On Colab, MARIO's interactive figures
+are **saved as HTML files** you can download. For an immediate **inline** chart, we will also use
+`matplotlib` on the DataFrames returned by MARIO.
 """)
 
 code(r"""import matplotlib.pyplot as plt
 
 gdp = db.GDP()
-gdp.plot(kind="bar", legend=False, title="PIL per regione")
-plt.ylabel("PIL")
+gdp.plot(kind="bar", legend=False, title="GDP by region")
+plt.ylabel("GDP")
 plt.tight_layout()
 plt.show()""")
 
-code(r"""# Plot nativo di MARIO: salva un HTML interattivo (non apre il browser su Colab)
+code(r"""# Native MARIO plot: saves an interactive HTML (does not open the browser on Colab)
 try:
     db.plot_gdp(path="gdp.html", auto_open=False)
-    print("Grafico interattivo salvato in 'gdp.html'.")
-    print("Su Colab puoi scaricarlo con:  from google.colab import files; files.download('gdp.html')")
+    print("Interactive chart saved to 'gdp.html'.")
+    print("On Colab you can download it with:  from google.colab import files; files.download('gdp.html')")
 except Exception as exc:
-    print("Plot nativo non disponibile in questo ambiente:", exc)""")
+    print("Native plot not available in this environment:", exc)""")
 
 # ---------------------------------------------------------------------------
-# 8. Esportazione
+# 8. Exporting
 # ---------------------------------------------------------------------------
-md(r"""## 8. Esportare i risultati
+md(r"""## 8. Exporting results
 
-Puoi salvare un database (con tutte le matrici e i metadati) in Excel, Parquet o testo, e
-ricaricarlo in seguito (*round-trip*).
+You can save a database (with all its matrices and metadata) to Excel, Parquet or text, and
+reload it later (*round-trip*).
 """)
 
-code(r"""# Esporta in Excel (una cartella con i fogli del database)
+code(r"""# Export to Excel (a folder with the database sheets)
 db.to_excel(path="database_export", flows=True, coefficients=True)
-print("Esportato in 'database_export'.")
+print("Exported to 'database_export'.")
 
-# In Colab puoi scaricare i file generati con:
+# On Colab you can download the generated files with:
 # from google.colab import files; files.download('...')""")
 
 md(r"""---
-## 🧩 Esercizio 1 — Esplorazione
+## 🧩 Exercise 1 — Exploration
 
-Usa le celle sopra come riferimento e completa il codice.
+Use the cells above as a reference and complete the code.
 """)
 
-code(r"""# 🧩 ESERCIZIO 1
-# a) Carica una NUOVA tabella di test SUT in una variabile chiamata `sut`
-# b) Stampa il suo tipo di tabella e i suoi set
-# c) Stampa l'elenco delle Commodity
+code(r"""# 🧩 EXERCISE 1
+# a) Load a NEW SUT test table into a variable called `sut`
+# b) Print its table type and its sets
+# c) Print the list of Commodities
 
-# TODO: scrivi qui il tuo codice
+# TODO: write your code here
 sut = ...
 """)
 
 # ---------------------------------------------------------------------------
-# 9. Trasformazioni
+# 9. Transformations
 # ---------------------------------------------------------------------------
-md(r"""# Parte 2 — Trasformazioni
+md(r"""# Part 2 — Transformations
 
-MARIO non serve solo a *leggere* i dati, ma a **trasformarli**: aggregare settori/regioni,
-aggiungere estensioni, applicare shock, convertire SUT↔IOT e MRIO→SRIO.
+MARIO is not only for *reading* data, but for **transforming** it: aggregating sectors/regions,
+adding extensions, applying shocks, converting SUT↔IOT and MRIO→SRIO.
 """)
 
-md(r"""## 9. Aggregazione
+md(r"""## 9. Aggregation
 
-Aggregare = raggruppare regioni, settori, fattori o conti satellite in categorie più ampie.
-Il flusso in MARIO è:
+Aggregating = grouping regions, sectors, factors or satellite accounts into broader categories.
+The flow in MARIO is:
 
-1. genera un **template Excel** con `get_aggregation_excel(...)`;
-2. nel template, per ogni elemento scrivi nella colonna **`Aggregation`** il nome del gruppo di
-   destinazione;
-3. applica con `db.aggregate("template.xlsx")`.
+1. generate an **Excel template** with `get_aggregation_excel(...)`;
+2. in the template, for each item, write in the **`Aggregation`** column the name of the target
+   group;
+3. apply with `db.aggregate("template.xlsx")`.
 
-Qui compiliamo il template **da codice** (con pandas) per rendere la cella riproducibile, ma in
-un caso reale potresti modificarlo a mano in Excel e ricaricarlo.
+Here we fill the template **from code** (with pandas) to make the cell reproducible, but in a real
+case you could edit it by hand in Excel and re-upload it.
 """)
 
-code(r"""# Lavoriamo su una copia per non alterare il database originale
+code(r"""# Work on a copy so we don't alter the original database
 db_agg = mario.load_test("IOT")
 
-# 1) Genera il template di aggregazione
-db_agg.get_aggregation_excel(path="aggregazione.xlsx", overwrite=True)
+# 1) Generate the aggregation template
+db_agg.get_aggregation_excel(path="aggregation.xlsx", overwrite=True)
 
-# 2) Compiliamo il template: teniamo tutto invariato, ma rinominiamo i 3 settori
-#    in 2 macro-settori (Primario / Servizi).
-fogli = pd.read_excel("aggregazione.xlsx", sheet_name=None)
-mappa_settori = {"Agriculture": "Primario", "Industry": "Primario", "Services": "Servizi"}
+# 2) Fill the template: keep everything unchanged, but rename the 3 sectors
+#    into 2 macro-sectors (Primary / Services).
+sheets = pd.read_excel("aggregation.xlsx", sheet_name=None)
+sector_map = {"Agriculture": "Primary", "Industry": "Primary", "Services": "Services"}
 
-with pd.ExcelWriter("aggregazione.xlsx", engine="openpyxl") as writer:
-    for nome_foglio, df in fogli.items():
+with pd.ExcelWriter("aggregation.xlsx", engine="openpyxl") as writer:
+    for sheet_name, df in sheets.items():
         df = df.copy()
-        # 'Aggregation' di default va riempita con il nome di destinazione
+        # 'Aggregation' must be filled with the target name
         df["Aggregation"] = df["Unnamed: 0"]
-        if nome_foglio == "Sector":
-            df["Aggregation"] = df["Unnamed: 0"].map(mappa_settori)
-        df.to_excel(writer, sheet_name=nome_foglio, index=False)
+        if sheet_name == "Sector":
+            df["Aggregation"] = df["Unnamed: 0"].map(sector_map)
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-# 3) Applica l'aggregazione
-db_agg.aggregate("aggregazione.xlsx")
-print("Settori dopo l'aggregazione:", list(db_agg.get_index("Sector")))""")
+# 3) Apply the aggregation
+db_agg.aggregate("aggregation.xlsx")
+print("Sectors after aggregation:", list(db_agg.get_index("Sector")))""")
 
-md(r"""## 10. Aggiungere estensioni (conti satellite)
+md(r"""## 10. Adding extensions (satellite accounts)
 
-Con `add_extensions(...)` puoi aggiungere nuove righe di conti satellite (es. un nuovo
-inquinante, un indicatore sociale) a partire da una matrice tua.
+With `add_extensions(...)` you can add new satellite-account rows (e.g. a new pollutant, a social
+indicator) starting from your own matrix.
 
 ```python
 db.add_extensions(
-    io=mia_matrice,        # DataFrame con i nuovi conti satellite
-    matrix="E",            # a quale blocco aggiungerli
-    units=mie_unita,       # DataFrame con le unità di misura
+    io=my_matrix,          # DataFrame with the new satellite accounts
+    matrix="E",            # which block to add them to
+    units=my_units,        # DataFrame with the units of measure
     inplace=True,
 )
 ```
-⚙️ Richiede dati coerenti con le dimensioni del database; la mostriamo come riferimento API.
+⚙️ Requires data consistent with the database dimensions; we show it as an API reference.
 """)
 
-md(r"""## 11. Analisi di shock (scenari)
+md(r"""## 11. Shock analysis (scenarios)
 
-Uno **shock** modifica uno o più coefficienti (es. +10% di intensità di un input) e ricalcola il
-sistema in un **nuovo scenario**, lasciando intatto il `baseline` per il confronto.
+A **shock** modifies one or more coefficients (e.g. +10% intensity of an input) and recomputes the
+system in a **new scenario**, leaving the `baseline` intact for comparison.
 
-Flusso: genera il template con `get_shock_excel(...)`, compila i fogli `z`/`v`/`e`/`Y`, poi
-applica con `shock_calc(...)` indicando il nuovo scenario.
+Flow: generate the template with `get_shock_excel(...)`, fill the `z`/`v`/`e`/`Y` sheets, then
+apply with `shock_calc(...)` specifying the new scenario.
 """)
 
 code(r"""db_shock = mario.load_test("IOT")
 
-# 1) Template di shock con 1 riga
+# 1) Shock template with 1 row
 db_shock.get_shock_excel(path="shock.xlsx", num_shock=1)
 
-# 2) Compiliamo lo shock sul foglio 'z': +20% sul coefficiente
-#    da (Reg1, Agriculture) verso (Reg1, Industry)
-fogli = pd.read_excel("shock.xlsx", sheet_name=None)
-fogli["z"].loc[0] = ["Reg1", "Agriculture", "Reg1", "Industry", "Percentage", 20]
+# 2) Fill the shock on the 'z' sheet: +20% on the coefficient
+#    from (Reg1, Agriculture) to (Reg1, Industry)
+sheets = pd.read_excel("shock.xlsx", sheet_name=None)
+sheets["z"].loc[0] = ["Reg1", "Agriculture", "Reg1", "Industry", "Percentage", 20]
 
 with pd.ExcelWriter("shock.xlsx", engine="openpyxl") as writer:
-    for nome_foglio, df in fogli.items():
-        df.to_excel(writer, sheet_name=nome_foglio, index=False)
+    for sheet_name, df in sheets.items():
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-# 3) Applica lo shock creando lo scenario 'shock_agri'
+# 3) Apply the shock creating the 'shock_agri' scenario
 db_shock.shock_calc("shock.xlsx", z=True, scenario="shock_agri")
-print("Scenari ora disponibili:", db_shock.scenarios)""")
+print("Scenarios now available:", db_shock.scenarios)""")
 
-code(r"""# Confrontiamo la produzione X tra baseline e scenario di shock
-confronto = db_shock.get_data(["X"], scenarios=["baseline", "shock_agri"])
-confronto""")
+code(r"""# Compare output X between baseline and the shock scenario
+comparison = db_shock.get_data(["X"], scenarios=["baseline", "shock_agri"])
+comparison""")
 
-md(r"""## 12. Aggiungere o dividere settori
+md(r"""## 12. Adding or splitting sectors
 
-`add_sectors(...)` permette di introdurre un nuovo settore o di **splittare** un settore esistente
-in più sotto-settori (workflow tipico per disaggregare una tecnologia). Richiede un template
-dedicato (`get_add_sectors_excel(...)`) con i dati di input/output del nuovo settore.
+`add_sectors(...)` lets you introduce a new sector or **split** an existing sector into several
+sub-sectors (a typical workflow to disaggregate a technology). It requires a dedicated template
+(`get_add_sectors_excel(...)`) with the input/output data of the new sector.
 
-⚙️ È un workflow avanzato che dipende fortemente dai dati: lo segnaliamo come riferimento.
+⚙️ This is an advanced workflow that depends heavily on the data: we flag it as a reference.
 ```python
-db.get_add_sectors_excel(path="nuovi_settori.xlsx")   # genera il template
-db.add_sectors("nuovi_settori.xlsx")                  # applica
+db.get_add_sectors_excel(path="new_sectors.xlsx")    # generate the template
+db.add_sectors("new_sectors.xlsx")                   # apply
 ```
 """)
 
-md(r"""## 13. Conversione SUT → IOT
+md(r"""## 13. SUT → IOT conversion
 
-Una tabella **Supply & Use** può essere convertita in una **Input-Output** simmetrica con
-`to_iot(method)`. I metodi classici sono `'A'`/`'B'`/`'C'`/`'D'` (ipotesi tecnologiche/di mercato).
+A **Supply & Use** table can be converted into a symmetric **Input-Output** table with
+`to_iot(method)`. The classic methods are `'A'`/`'B'`/`'C'`/`'D'` (technology/market assumptions).
 """)
 
 code(r"""sut = mario.load_test("SUT")
-print("Prima:", sut.table_type, "| set:", sut.sets)
+print("Before:", sut.table_type, "| sets:", sut.sets)
 
-# Converte la SUT in IOT (ipotesi tecnologica 'B' = product technology)
+# Convert the SUT into an IOT (technology assumption 'B' = product technology)
 sut.to_iot("B")
-print("Dopo :", sut.table_type)""")
+print("After :", sut.table_type)""")
 
-md(r"""## 14. Da multi-regionale (MRIO) a mono-regionale (SRIO)
+md(r"""## 14. From multi-regional (MRIO) to single-region (SRIO)
 
-Con `to_single_region(...)` "ritagli" una singola regione dal database multi-regionale,
-trattando le altre regioni come resto del mondo (import/export). Con `to_region_subset(...)`
-tieni invece un sottoinsieme di regioni.
+With `to_single_region(...)` you "cut out" a single region from the multi-regional database,
+treating the other regions as the rest of the world (imports/exports). With `to_region_subset(...)`
+you instead keep a subset of regions.
 """)
 
 code(r"""db_mrio = mario.load_test("IOT")
-print("Regioni MRIO:", list(db_mrio.get_index("Region")))
+print("MRIO regions:", list(db_mrio.get_index("Region")))
 
-# Estrai la sola Reg1 come database mono-regionale (su una copia)
+# Extract Reg1 only as a single-region database (on a copy)
 srio = db_mrio.to_single_region("Reg1", inplace=False)
-print("Regioni SRIO:", list(srio.get_index("Region")))""")
+print("SRIO regions:", list(srio.get_index("Region")))""")
 
-md(r"""## 15. Metodologia Isard → Chenery-Moses
+md(r"""## 15. Isard → Chenery-Moses methodology
 
-`to_chenery_moses(...)` converte un database dalla rappresentazione *Isard* (commercio
-inter-regionale pieno) a quella *Chenery-Moses* (coefficienti di commercio), molto usata nei
-modelli MRIO.
+`to_chenery_moses(...)` converts a database from the *Isard* representation (full inter-regional
+trade) to the *Chenery-Moses* one (trade coefficients), widely used in MRIO models.
 
 ```python
-db.to_chenery_moses()      # ⚙️ avanzato: dipende dalla struttura del commercio inter-regionale
+db.to_chenery_moses()      # ⚙️ advanced: depends on the inter-regional trade structure
 ```
 """)
 
 # ---------------------------------------------------------------------------
-# 16-18. Workflow avanzati
+# 16-18. Advanced workflows
 # ---------------------------------------------------------------------------
-md(r"""# Parte 3 — Workflow avanzati
+md(r"""# Part 3 — Advanced workflows
 
-Indicatori ambientali, analisi delle catene di fornitura e *structural path analysis*.
+Environmental indicators, supply-chain analysis and *structural path analysis*.
 """)
 
-md(r"""## 16. Calcolo dei gas serra (GHG)
+md(r"""## 16. Greenhouse gas (GHG) calculation
 
-`calc_ghg(...)` aggrega i diversi gas serra presenti nei conti satellite in un unico indicatore
-in CO₂-equivalente, usando i fattori GWP (Global Warming Potential) dell'IPCC.
+`calc_ghg(...)` aggregates the different greenhouse gases present in the satellite accounts into a
+single CO₂-equivalent indicator, using the IPCC GWP (Global Warming Potential) factors.
 
 ```python
-db.calc_ghg(gwp=mio_profilo_gwp, label="GHG", ipcc_report="AR6", time_horizon=100)
+db.calc_ghg(gwp=my_gwp_profile, label="GHG", ipcc_report="AR6", time_horizon=100)
 ```
-⚙️ Richiede che il database contenga i singoli gas serra: sul mini-database di test (che ha solo
-"CO2") serve solo come riferimento API. Sui database reali (es. EXIOBASE) funziona pienamente.
+⚙️ Requires the database to contain the individual greenhouse gases: on the tiny test database
+(which only has "CO2") it serves only as an API reference. On real databases (e.g. EXIOBASE) it
+works fully.
 """)
 
-md(r"""## 17. Analisi delle catene di fornitura (supply chain)
+md(r"""## 17. Supply-chain analysis
 
-MARIO offre una famiglia di metodi `calc_trades*` e `calc_embodied_*` per studiare il commercio e
-i contenuti "incorporati" (embodied) di un indicatore (es. CO₂, occupazione) lungo le filiere,
-più `calc_linkages` per i legami a monte/valle (Rasmussen-Hirschman).
+MARIO provides a family of `calc_trades*` and `calc_embodied_*` methods to study trade and the
+"embodied" content of an indicator (e.g. CO₂, employment) along supply chains, plus
+`calc_linkages` for backward/forward linkages (Rasmussen-Hirschman).
 """)
 
 code(r"""db_sc = mario.load_test("IOT")
 
-# Legami a monte/valle (backward/forward linkages) per settore
+# Backward/forward linkages per sector
 linkages = db_sc.calc_linkages()
 linkages""")
 
-code(r"""# CO2 "incorporata" nelle importazioni (embodied imports) — esempio di indicatore di filiera
+code(r"""# CO2 embodied in imports — example of a supply-chain indicator
 emb = db_sc.calc_embodied_imports(indicator="CO2", item="Industry")
 print(type(emb).__name__)
 emb""")
 
 md(r"""## 18. Structural Path Analysis (SPA)
 
-La **SPA** scompone l'impatto totale di un indicatore (es. CO₂) nei singoli **percorsi** della
-filiera produttiva, ordinandoli per importanza. Utile per capire *dove esattamente* nella catena
-di fornitura si genera un impatto.
+**SPA** decomposes the total impact of an indicator (e.g. CO₂) into the individual **paths** of the
+production chain, ranked by importance. Useful to understand *exactly where* in the supply chain an
+impact is generated.
 """)
 
 code(r"""db_spa = mario.load_test("IOT")
 
-# Primi percorsi che contribuiscono alle emissioni di CO2 (profondità max 3)
-percorsi = db_spa.calc_spa("CO2", max_depth=3, top_n=15, plot=None, show_plot=False)
-percorsi.head(15)""")
+# Top paths contributing to CO2 emissions (max depth 3)
+paths = db_spa.calc_spa("CO2", max_depth=3, top_n=15, plot=None, show_plot=False)
+paths.head(15)""")
 
 # ---------------------------------------------------------------------------
-# Esercizi finali
-# ---------------------------------------------------------------------------
-md(r"""---
-# 🧩 Esercizi finali
-
-Mettiamo insieme quello che abbiamo imparato. Prova a risolverli con la documentazione alla mano.
-""")
-
-code(r"""# 🧩 ESERCIZIO 2 — Pipeline completa
-# 1) Carica una IOT di test
-# 2) Calcola X, z e w
-# 3) Stampa il PIL per regione
-# 4) Esporta il database in Excel nella cartella 'mio_export'
-
-# TODO: il tuo codice qui
-""")
-
-code(r"""# 🧩 ESERCIZIO 3 — Scenario
-# 1) Carica una nuova IOT di test
-# 2) Genera un template di shock e applica un +15% al coefficiente z
-#    da (Reg2, Services) verso (Reg2, Industry), in uno scenario 'mio_shock'
-# 3) Confronta X tra 'baseline' e 'mio_shock' con get_data
-
-# TODO: il tuo codice qui
-""")
-
-code(r"""# 🧩 ESERCIZIO 4 — Aggregazione regionale
-# 1) Carica una IOT di test
-# 2) Genera il template di aggregazione
-# 3) Aggrega le due regioni Reg1 e Reg2 in un'unica regione 'Mondo'
-# 4) Verifica che ora ci sia una sola regione
-
-# TODO: il tuo codice qui
-""")
-
-# ---------------------------------------------------------------------------
-# Footer / risorse
+# Final exercises
 # ---------------------------------------------------------------------------
 md(r"""---
-## 📚 Risorse e prossimi passi
+# 🧩 Final exercises
 
-- **User guide ufficiale**: <https://mario-suite.readthedocs.io/en/latest/user_guide/index.html>
-- **Documentazione completa**: <https://mario-suite.readthedocs.io/>
-- **Codice sorgente (GitHub)**: <https://github.com/it-is-me-mario/MARIO>
-- **Articolo scientifico**: *MARIO: A Versatile and User-Friendly Software for Building
-  Input-Output Models* (Journal of Open Research Software)
+Let's put together what we learned. Try to solve them with the documentation at hand.
+""")
 
-### Cosa fare dopo il corso
-1. Scarica un database reale (es. EXIOBASE) e ripeti i workflow con dati veri.
-2. Costruisci un tuo scenario di policy (shock) e quantificane gli effetti su PIL ed emissioni.
-3. Approfondisci la *structural path analysis* per individuare gli hotspot delle filiere.
+code(r"""# 🧩 EXERCISE 2 — Full pipeline
+# 1) Load a test IOT
+# 2) Compute X, z and w
+# 3) Print GDP by region
+# 4) Export the database to Excel in a folder called 'my_export'
 
-> Hai trovato un errore o un comando che non funziona? Annota la versione (`mario.__version__`)
-> e segnalalo al docente. Buon lavoro! 🎓
+# TODO: your code here
+""")
+
+code(r"""# 🧩 EXERCISE 3 — Scenario
+# 1) Load a new test IOT
+# 2) Generate a shock template and apply a +15% to the z coefficient
+#    from (Reg2, Services) to (Reg2, Industry), in a scenario called 'my_shock'
+# 3) Compare X between 'baseline' and 'my_shock' with get_data
+
+# TODO: your code here
+""")
+
+code(r"""# 🧩 EXERCISE 4 — Regional aggregation
+# 1) Load a test IOT
+# 2) Generate the aggregation template
+# 3) Aggregate the two regions Reg1 and Reg2 into a single region 'World'
+# 4) Verify there is now a single region
+
+# TODO: your code here
 """)
 
 # ---------------------------------------------------------------------------
-# Dump del notebook
+# Footer / resources
+# ---------------------------------------------------------------------------
+md(r"""---
+## 📚 Resources and next steps
+
+- **Official user guide**: <https://mario-suite.readthedocs.io/en/latest/user_guide/index.html>
+- **Full documentation**: <https://mario-suite.readthedocs.io/>
+- **Source code (GitHub)**: <https://github.com/it-is-me-mario/MARIO>
+- **Scientific paper**: *MARIO: A Versatile and User-Friendly Software for Building Input-Output
+  Models* (Journal of Open Research Software)
+
+### What to do after the course
+1. Download a real database (e.g. EXIOBASE) and repeat the workflows with real data.
+2. Build your own policy scenario (shock) and quantify its effects on GDP and emissions.
+3. Dive into structural path analysis to find supply-chain hotspots.
+
+> Found a bug or a command that doesn't work? Note the version (`mario.__version__`) and report it
+> to the instructor. Good luck! 🎓
+""")
+
+# ---------------------------------------------------------------------------
+# Notebook dump
 # ---------------------------------------------------------------------------
 NB = {
     "cells": CELLS,
     "metadata": {
-        "colab": {"name": "Corso_MARIO.ipynb", "provenance": []},
+        "colab": {"name": "MARIO_course.ipynb", "provenance": []},
         "kernelspec": {"display_name": "Python 3", "name": "python3"},
         "language_info": {"name": "python"},
     },
@@ -580,8 +580,8 @@ NB = {
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "notebooks")
 os.makedirs(OUT_DIR, exist_ok=True)
-OUT_PATH = os.path.join(OUT_DIR, "Corso_MARIO.ipynb")
+OUT_PATH = os.path.join(OUT_DIR, "MARIO_course.ipynb")
 with open(OUT_PATH, "w", encoding="utf-8") as fh:
     json.dump(NB, fh, ensure_ascii=False, indent=1)
 
-print(f"Notebook generato: {OUT_PATH}  ({len(CELLS)} celle)")
+print(f"Notebook generated: {OUT_PATH}  ({len(CELLS)} cells)")
