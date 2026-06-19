@@ -1,0 +1,36 @@
+[project]
+name = "mario-course"
+version = "1.0.0"
+description = "Hands-on course on MARIO — Input-Output Analysis with Python"
+readme = "README.md"
+# MARIO (mariopy) requires Python >= 3.11. Its pinned numpy==2.1.1 does not support
+# Python 3.14+, so we cap the range. uv will pick (or download) a suitable interpreter.
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    # The course package. On PyPI it is called "mariopy"; you import it as "mario".
+    # It pins exact versions (pandas==3.0.2 / numpy==2.1.1), so we give it its own
+    # isolated environment to keep those versions reproducible and conflict-free.
+    "mariopy==1.0.2",
+    # mariopy needs cvxlab, but only the 1.0.1b1 pre-release is compatible with
+    # pandas 3.0.2 (the stable cvxlab pins an older pandas). Pin it so uv resolves
+    # deterministically instead of failing on the conflicting stable release.
+    "cvxlab==1.0.1b1",
+    # The notebook interface students use (run with: uv run jupyter lab).
+    "jupyterlab>=4",
+    # Python kernel for Jupyter, and inline plotting used by the notebook.
+    "ipykernel",
+    "matplotlib",
+]
+
+# Tooling used ONLY by the instructor to regenerate / validate the notebook.
+# Students never need this. Install it with:  uv sync --group dev
+[dependency-groups]
+dev = [
+    "nbformat",
+    "nbconvert",
+    "nbclient",
+]
+
+# Keep uv's managed virtual environment inside the project (./.venv).
+[tool.uv]
+package = false

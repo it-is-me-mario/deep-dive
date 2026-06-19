@@ -40,26 +40,29 @@ def code(text):
 # ---------------------------------------------------------------------------
 md(r"""# Hands-on course on **MARIO** — Input-Output Analysis with Python
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/MARIO_course.ipynb)
-
 **MARIO** (*Multifunctional Analysis of Regions through Input-Output*) is a Python package
 developed by Politecnico di Milano and eNextGen for building and analysing
 **Input-Output Tables (IOT)** and **Supply & Use Tables (SUT)**, both single- and multi-regional,
 in monetary or physical units.
 
-This notebook is designed to be run on **Google Colab** by many students at the same time:
-it uses MARIO's **built-in test database**, so it requires **no heavy data downloads** and
-behaves identically for everyone.
+This notebook runs in a **local, isolated Python environment** (see `SETUP.md`). It uses MARIO's
+**built-in test database**, so it requires **no heavy data downloads** and behaves identically for
+everyone.
 
 ---
 
-### How to use this notebook (read before you start)
+### Before you start
 
-1. **Make your own copy**: menu `File ▸ Save a copy in Drive`. You will work on your own personal
-   copy without disturbing the others.
-2. Run the cells **one at a time**, from top to bottom (`Shift + Enter`).
-3. Cells marked with 🧩 **Exercise** are for you: complete the code where you see `# TODO`.
-4. Cells marked with ⚙️ **Advanced** show the API for workflows that need real-world data:
+> ⚙️ **Did you install the environment?** This notebook expects to run inside the course
+> environment created with **`uv sync`** and launched with **`uv run jupyter lab`**. If you haven't
+> done that yet, follow **`SETUP.md`** first — it takes about 5 minutes. The first code cell below
+> just checks that MARIO is available.
+
+### How to use this notebook
+
+1. Run the cells **one at a time**, from top to bottom (`Shift + Enter`).
+2. Cells marked with 🧩 **Exercise** are for you: complete the code where you see `# TODO`.
+3. Cells marked with ⚙️ **Advanced** show the API for workflows that need real-world data:
    read them, but they may not produce a meaningful numerical result on the tiny test database.
 
 > Estimated time: 2–3 hours. Have fun! 🚀
@@ -68,45 +71,37 @@ behaves identically for everyone.
 # ---------------------------------------------------------------------------
 # 1. Setup
 # ---------------------------------------------------------------------------
-md(r"""## 1. Installation and setup
+md(r"""## 1. Setup check
 
-We install the latest version of MARIO published on PyPI. ⚠️ Note: the package on PyPI is called
-**`mariopy`**, but the module you import in Python is called **`mario`**.
+MARIO is **already installed** in the course environment (that is what `uv sync` did for you), so
+there is nothing to `pip install` here. The cell below just confirms that everything is in place.
 
-> ### 🟥 You WILL see red warnings — this is normal, don't panic!
+> ⚠️ Note: the package on PyPI is called **`mariopy`**, but the module you import in Python is
+> called **`mario`**.
 >
-> MARIO pins specific versions of `pandas` and `numpy`. When pip installs them you will see
-> messages like *"pip's dependency resolver … dependency conflicts … google-colab … gradio …
-> numba …"*. **These warnings are harmless**: they refer to other packages pre-installed by Colab
-> (gradio, google-colab, numba…) that have nothing to do with MARIO. You can ignore them.
->
-> Because `numpy`/`pandas` get upgraded, **Colab needs to restart the runtime once**. The cell
-> below does it **automatically**: you will see *"Your session crashed/restarted"* — that is
-> **intended**. After the restart, simply continue from the **next** cell (the `import mario` one)
-> and **do not re-run** the install cell.
+> If the next cell raises `ModuleNotFoundError: No module named 'mario'`, you are almost certainly
+> running Jupyter **outside** the course environment. Stop it, and relaunch from the course folder
+> with **`uv run jupyter lab`** (see `SETUP.md`).
 """)
 
-code(r"""# Install MARIO (course version). Run this cell ONCE.
-%pip install -q mariopy==1.0.2
+code(r"""# Verify the environment. MARIO is pre-installed via `uv sync` — no installation happens here.
+import sys
 
-# On Colab, upgrading numpy/pandas requires a one-time runtime restart so the new
-# versions load cleanly. We trigger it automatically here. This is NORMAL:
-# after the restart, just continue from the NEXT cell (do not re-run this one).
 try:
-    import google.colab  # noqa: F401  (present only on Colab)
-    print("\n✅ MARIO installed. Restarting the runtime to load the new numpy/pandas...")
-    print("   This is expected. After it restarts, run the NEXT cell. Do NOT re-run this one.")
-    import IPython
-    IPython.Application.instance().kernel.do_shutdown(True)
-except ImportError:
-    # Not on Colab (e.g. local Jupyter): no restart needed.
-    print("✅ MARIO installed (no runtime restart needed outside Colab).")""")
+    import mario
+    import pandas as pd
+    import numpy as np
+except ModuleNotFoundError as exc:
+    raise SystemExit(
+        f"\n❌ {exc.name!r} is not available in this kernel.\n"
+        "   You are likely running Jupyter outside the course environment.\n"
+        "   Close it and relaunch with:  uv run jupyter lab   (see SETUP.md)."
+    )
 
-code(r"""import mario
-import pandas as pd
-import numpy as np
-
-print("MARIO version:", mario.__version__)
+print("Python :", sys.version.split()[0])
+print("MARIO  :", mario.__version__)
+print("pandas :", pd.__version__, "| numpy:", np.__version__)
+print("✅ Environment OK — you're ready to go.")
 
 # Reduce log verbosity to keep the notebook output clean
 try:
@@ -198,8 +193,8 @@ db = mario.parse_exiobase(
 )
 ```
 
-> 💡 In Colab you can upload the downloaded files with `from google.colab import files; files.upload()`
-> or by mounting Google Drive (`from google.colab import drive; drive.mount('/content/drive')`).
+> 💡 Working locally, just point the `path=` argument at the folder where you downloaded the files
+> (an absolute path, or a path relative to this notebook). No uploads or cloud mounts are needed.
 > For the rest of the course we stick with the test database, which behaves just like a real one.
 """)
 
@@ -281,9 +276,9 @@ type(data), len(data)""")
 # ---------------------------------------------------------------------------
 md(r"""## 7. Visualization
 
-MARIO has interactive plotting functions (built on Plotly). On Colab, MARIO's interactive figures
-are **saved as HTML files** you can download. For an immediate **inline** chart, we will also use
-`matplotlib` on the DataFrames returned by MARIO.
+MARIO has interactive plotting functions (built on Plotly). They are **saved as HTML files** in the
+course folder, which you can open in your browser. For an immediate **inline** chart, we will also
+use `matplotlib` on the DataFrames returned by MARIO.
 """)
 
 code(r"""import matplotlib.pyplot as plt
@@ -294,11 +289,10 @@ plt.ylabel("GDP")
 plt.tight_layout()
 plt.show()""")
 
-code(r"""# Native MARIO plot: saves an interactive HTML (does not open the browser on Colab)
+code(r"""# Native MARIO plot: saves an interactive HTML file in the course folder
 try:
     db.plot_gdp(path="gdp.html", auto_open=False)
-    print("Interactive chart saved to 'gdp.html'.")
-    print("On Colab you can download it with:  from google.colab import files; files.download('gdp.html')")
+    print("Interactive chart saved to 'gdp.html' — open it from the Jupyter file browser or your browser.")
 except Exception as exc:
     print("Native plot not available in this environment:", exc)""")
 
@@ -313,10 +307,7 @@ reload it later (*round-trip*).
 
 code(r"""# Export to Excel (a folder with the database sheets)
 db.to_excel(path="database_export", flows=True, coefficients=True)
-print("Exported to 'database_export'.")
-
-# On Colab you can download the generated files with:
-# from google.colab import files; files.download('...')""")
+print("Exported to the 'database_export' folder (next to this notebook).")""")
 
 md(r"""---
 ## 🧩 Exercise 1 — Exploration
@@ -592,8 +583,7 @@ md(r"""---
 NB = {
     "cells": CELLS,
     "metadata": {
-        "colab": {"name": "MARIO_course.ipynb", "provenance": []},
-        "kernelspec": {"display_name": "Python 3", "name": "python3"},
+        "kernelspec": {"display_name": "Python 3 (ipykernel)", "name": "python3"},
         "language_info": {"name": "python"},
     },
     "nbformat": 4,

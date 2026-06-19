@@ -1,14 +1,26 @@
 # Hands-on course on MARIO — Input-Output Analysis with Python
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/it-is-me-mario/deep-dive/blob/main/notebooks/MARIO_course.ipynb)
-
 Teaching material to learn how to use **[MARIO](https://mario-suite.readthedocs.io/)**
 (*Multifunctional Analysis of Regions through Input-Output*), the Python package from
 Politecnico di Milano / eNextGen for building and analysing Input-Output Tables (IOT) and
 Supply & Use Tables (SUT).
 
 The course is built from the [official user guide](https://mario-suite.readthedocs.io/en/latest/user_guide/index.html)
-and is designed to be run on **Google Colab** by 10–20 students at the same time.
+and runs in a **local, isolated Python environment** managed with [uv](https://docs.astral.sh/uv/),
+opened in **JupyterLab**. Setting up that environment — cleanly and reproducibly, the same on every
+machine — is itself part of the training.
+
+## ⚡ Quick start
+
+**New to Python / the terminal? Read [`SETUP.md`](SETUP.md) — it walks you through everything from
+scratch (5 minutes).** The short version, once [uv](https://docs.astral.sh/uv/) is installed:
+
+```bash
+git clone https://github.com/it-is-me-mario/deep-dive.git
+cd deep-dive
+uv sync               # builds the exact environment (downloads Python too, if needed)
+uv run jupyter lab    # opens JupyterLab; then open notebooks/MARIO_course.ipynb
+```
 
 ## 📓 The notebook
 
@@ -27,10 +39,10 @@ Every code cell was executed end-to-end without errors against **mariopy 1.0.2**
 
 ## 🚀 How to use it (students)
 
-1. Open the notebook in Colab (use the *Open in Colab* badge above, or upload the `.ipynb` file to
-   <https://colab.research.google.com>).
-2. `File ▸ Save a copy in Drive` to get your own personal copy.
-3. Run the cells from top to bottom (`Shift + Enter`). The first one installs MARIO.
+1. **Set up the environment once** following [`SETUP.md`](SETUP.md) (`uv sync`).
+2. Launch JupyterLab from the course folder: `uv run jupyter lab`.
+3. Open [`notebooks/MARIO_course.ipynb`](notebooks/MARIO_course.ipynb) and run the cells from top to
+   bottom (`Shift + Enter`). The first cell just checks that MARIO is available.
 4. Complete the 🧩 **Exercise** cells.
 
 > ⚠️ The package on PyPI is called **`mariopy`**, but in Python you import it as **`mario`**.
@@ -39,21 +51,23 @@ Every code cell was executed end-to-end without errors against **mariopy 1.0.2**
 
 Real databases are too large to download live in a classroom: they must be **downloaded separately
 and loaded from local files**. The notebook shows the pattern (`download_*` + `parse_*`) in
-section 3.2. On Colab you can upload them with `google.colab.files.upload()` or by mounting Drive.
+section 3.2. Working locally, you just point the `path=` argument at the folder where you downloaded
+the files — no uploads needed.
 
 ## 🔧 For the instructor / regenerating the notebook
 
-The notebook is generated from a versioned script, so it is easy to maintain and review:
+The notebook is generated from a versioned script, so it is easy to maintain and review. The `dev`
+dependency group adds the notebook tooling:
 
 ```bash
-pip install -r requirements.txt
-python tools/build_notebook.py        # regenerates notebooks/MARIO_course.ipynb
+uv sync --group dev                       # install instructor tooling
+uv run python tools/build_notebook.py     # regenerates notebooks/MARIO_course.ipynb
 ```
 
 To re-validate that all cells run without errors:
 
 ```bash
-jupyter nbconvert --to notebook --execute --allow-errors \
+uv run jupyter nbconvert --to notebook --execute --allow-errors \
   --output executed_check.ipynb notebooks/MARIO_course.ipynb
 ```
 
