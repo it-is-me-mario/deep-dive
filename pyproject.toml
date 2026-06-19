@@ -34,3 +34,8 @@ dev = [
 # Keep uv's managed virtual environment inside the project (./.venv).
 [tool.uv]
 package = false
+# Copy files into .venv instead of hardlinking them from uv's cache. Hardlinking
+# fails on some setups (cloud-synced folders like OneDrive, or when the cache and
+# project are on different filesystems), e.g. "os error 396". Copying is slightly
+# slower / uses a bit more disk, but it works everywhere — no per-machine surprises.
+link-mode = "copy"

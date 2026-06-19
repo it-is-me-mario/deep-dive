@@ -97,6 +97,11 @@ You need the course folder on your computer. Pick **one** of the two options.
 git clone https://github.com/it-is-me-mario/deep-dive.git
 ```
 
+> ⚠️ **Windows: avoid OneDrive-synced folders.** Don't put the course folder inside
+> **OneDrive** (the "Documents" / "Desktop" folders are often synced to it). OneDrive locks
+> files while it syncs, which can break the install with *"Access denied" / "os error 5"*.
+> Use a plain local path instead, e.g. `C:\Users\<you>\deep-dive`.
+
 ### Then: open a terminal **inside** that folder
 
 All the next commands must run from inside the course folder (the one containing `pyproject.toml`).
@@ -191,6 +196,7 @@ already created `.venv`, you just point your editor at it.
 | JupyterLab opens but the notebook shows **"No Kernel" / kernel not found** | Use **Kernel ▸ Change Kernel** and pick the project's Python (the one in `.venv`). The environment already includes `ipykernel`. |
 | `Port 8888 is already in use` | Another Jupyter is running. Either use the link it offers, or launch on another port: `uv run jupyter lab --port 8889`. |
 | `import mario` fails with *ModuleNotFoundError* | You launched Jupyter outside the environment. Always start it with **`uv run jupyter lab`** from inside the course folder. |
+| `uv sync` warns *"Failed to hardlink files"* or errors with *"os error 396"* | Already handled — the project forces copy mode (`link-mode = "copy"` in `pyproject.toml`), so you should not see this. If you somehow do (e.g. an old copy of the project), run `uv sync` once with `UV_LINK_MODE=copy` set, or just `git pull` the latest course files. |
 | Everything is broken and you want a clean slate | Delete the `.venv` folder inside the course folder and run `uv sync` again. Your notebook and files are untouched. |
 
 ---
