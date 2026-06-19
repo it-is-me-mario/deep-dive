@@ -158,8 +158,8 @@ print("Multi-regional?", db.is_multi_region)""")
 
 md(r"""### 3.1 Custom database from Excel
 
-If you have your own data in an Excel sheet formatted according to MARIO's schema, you load it
-like this:
+If you already have your own data in an Excel sheet formatted according to MARIO's schema, you load
+it like this:
 
 ```python
 db = mario.parse_from_excel(
@@ -169,11 +169,102 @@ db = mario.parse_from_excel(
 )
 ```
 
-To get an empty, ready-to-fill **template**:
+#### Building an empty template from scratch
 
-```python
-mario.write_parse_template(...)   # see help(mario.write_parse_template)
-```
+Most of the time you don't have a MARIO-shaped file yet — you just know which **regions**,
+**sectors** and **accounts** you want. `mario.write_parse_template(...)` builds an empty,
+ready-to-fill workbook for you. Two things to keep in mind:
+
+- `table` is **keyword-only**: call it as `table="IOT"`, not positionally.
+- `path` is the **`.xlsx` file** to create, not a folder.
+- You must provide either `sets` + `units`, **or** a `definition` workbook.
+
+The required sets depend on the table type:
+
+| Table | Required `sets` | Sets needing `units` |
+|-------|-----------------|----------------------|
+| `IOT` | `Region`, `Sector`, `Factor of production`, `Satellite account`, `Consumption category` | `Sector`, `Factor of production`, `Satellite account` |
+| `SUT` | `Region`, `Activity`, `Commodity`, `Factor of production`, `Satellite account`, `Consumption category` | `Activity`, `Commodity`, `Factor of production`, `Satellite account` |
+
+The cells below create one IOT and one SUT template in the course folder.
+""")
+
+code(r"""# Build a custom IOT template from user-defined sets and units
+iot_sets = {
+    "Region": ["IT", "DE"],
+    "Sector": ["Agriculture", "Industry", "Services"],
+    "Factor of production": ["Labour", "Capital"],
+    "Satellite account": ["CO2"],
+    "Consumption category": ["Households"],
+}
+iot_units = {
+    "Sector": "MEUR",                 # one shared unit for the whole set
+    "Factor of production": "MEUR",
+    "Satellite account": "kt",
+}
+
+iot_template = mario.write_parse_template(
+    "template_IOT.xlsx",              # a FILE path (.xlsx), not a folder
+    table="IOT",                      # keyword-only argument
+    sets=iot_sets,
+    units=iot_units,
+)
+print("Template written to:", iot_template)""")
+
+code(r"""# Build a custom SUT template: no "Sector", but "Activity" + "Commodity"
+sut_sets = {
+    "Region": ["IT", "DE"],
+    "Activity": ["Agriculture", "Manufacturing", "Services"],
+    "Commodity": ["Crops", "Goods", "Services"],
+    "Factor of production": ["Labour", "Capital"],
+    "Satellite account": ["CO2"],
+    "Consumption category": ["Households"],
+}
+sut_units = {
+    "Activity": "MEUR",
+    "Commodity": "MEUR",
+    "Factor of production": "MEUR",
+    "Satellite account": "kt",
+}
+
+sut_template = mario.write_parse_template(
+    "template_SUT.xlsx",
+    table="SUT",
+    sets=sut_sets,
+    units=sut_units,
+)
+print("Template written to:", sut_template)""")
+
+code(r'''# Fill the empty "data" sheet with example numbers, so the round-trip below is not all zeros.
+# Layout: the first 2 rows and first 2 columns hold labels; the numeric block starts at row 3, col C.
+import numpy as np
+from openpyxl import load_workbook
+
+rng = np.random.default_rng(0)
+wb = load_workbook("template_IOT.xlsx")
+ws = wb["data"]
+
+first_row, first_col = 3, 3            # skip the 2 header rows and 2 label columns (1-indexed)
+n_rows = ws.max_row - 2
+n_cols = ws.max_column - 2
+values = rng.integers(10, 200, size=(n_rows, n_cols))
+for i in range(n_rows):
+    for j in range(n_cols):
+        ws.cell(row=first_row + i, column=first_col + j, value=int(values[i, j]))
+
+wb.save("template_IOT.xlsx")
+print(f"Filled a {n_rows}x{n_cols} numeric block with example values.")''')
+
+code(r'''# Read the filled workbook back into MARIO and compute total output X to confirm the round-trip.
+db_custom = mario.parse_from_excel(path="template_IOT.xlsx", table="IOT", mode="flows")
+db_custom.calc_all(["X"])
+print(db_custom)
+print("\nSectors:", list(db_custom.get_index("Sector")))
+db_custom.X''')
+
+md(r"""> 💡 **Tip:** if you'd rather not type the dictionaries by hand, generate a *definition* workbook
+> with `mario.write_template_definition("definition_IOT.xlsx", table="IOT")`, fill in the
+> sets/units there, then pass it back via `write_parse_template(..., definition="definition_IOT.xlsx")`.
 """)
 
 md(r"""### 3.2 "Large" databases (EXIOBASE, EORA, FIGARO…)
