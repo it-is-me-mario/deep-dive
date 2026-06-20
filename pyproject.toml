@@ -22,7 +22,7 @@ dependencies = [
     "matplotlib",
 ]
 
-# Tooling used ONLY by the instructor to regenerate / validate the notebook.
+# Optional tooling to run/validate the notebooks from the command line.
 # Students never need this. Install it with:  uv sync --group dev
 [dependency-groups]
 dev = [
