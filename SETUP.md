@@ -105,13 +105,48 @@ git clone https://github.com/it-is-me-mario/deep-dive.git
 ### Then: open a terminal **inside** that folder
 
 All the next commands must run from inside the course folder (the one containing `pyproject.toml`).
+A "terminal" is just the black/blue window where you type commands: **PowerShell** on Windows, the
+**Terminal** app on macOS. "Being inside the folder" means the terminal is *pointing at* that folder,
+so the commands act on the course files.
 
-- **Windows:** open the `deep-dive` folder in File Explorer, then in the address bar type `powershell`
-  and press **Enter** — a PowerShell opens already pointing at that folder.
-- **macOS:** right-click the folder ▸ **New Terminal at Folder** (or `cd` into it).
+The trick below moves you in with **zero typing** — use it if you can:
+
+- **Windows:** open the `deep-dive-main` folder in File Explorer, click once in the **address bar**
+  at the top, type `powershell`, and press **Enter** — a PowerShell opens already pointing at that
+  folder.
+- **macOS:** right-click the folder ▸ **New Terminal at Folder**.
+
+#### If you'd rather use `cd` by hand
+
+`cd` means *"change directory"* — it tells the terminal which folder to work in. You write `cd`,
+then a space, then the **path** (the address) of the folder. The easiest way to get the path right
+is to **copy it**, not type it:
+
+- **Windows:**
+  1. Open the `deep-dive-main` folder, click once in the **address bar** at the top (the path turns
+     blue), and press **Ctrl + C** to copy it.
+  2. In PowerShell type `cd`, a **space**, then paste with **Ctrl + V** (or right-click).
+  3. Press **Enter**. It will read something like `cd "C:\Users\YourName\Desktop\deep-dive-main"`.
+- **macOS:**
+  1. In Terminal type `cd` and a **space** (don't press Enter yet).
+  2. In Finder, **drag the `deep-dive-main` folder into the Terminal window** and let go — the full
+     path appears automatically.
+  3. Press **Enter**.
+
+> ⚠️ **If your path contains a space** (for example your user name is `Mohamed Soud`), you **must**
+> wrap the path in **double quotes**, otherwise the terminal stops at the space and you get an error
+> like *"A positional parameter cannot be found…"*. So type:
+>
+> ```powershell
+> cd "C:\Users\Mohamed Soud\Desktop\deep-dive-main"
+> ```
+>
+> 💡 Tip: type `cd ` and the first letters of the folder, then press **Tab** — the terminal completes
+> the name for you and adds the quotes automatically.
 
 To confirm you are in the right place, run `ls` (macOS/Linux) or `dir` (Windows): you should see
-`pyproject.toml`, `uv.lock`, `README.md` and the `notebooks` folder.
+`pyproject.toml`, `uv.lock`, `README.md` and the `notebooks` folder. The start of the line (the
+"prompt") should also show the `deep-dive-main` folder name.
 
 ---
 
@@ -190,6 +225,7 @@ already created `.venv`, you just point your editor at it.
 
 | Symptom | Fix |
 |---|---|
+| `cd`: *"A positional parameter cannot be found that accepts argument …"* | Your folder path contains a **space**. Wrap the whole path in double quotes: `cd "C:\Users\Mohamed Soud\Desktop\deep-dive-main"`. |
 | `uv: command not found` / `'uv' is not recognized` | You didn't open a **new** terminal after installing uv. Close it and open a fresh one. If it still fails, the installer prints the folder it used (e.g. `%USERPROFILE%\.local\bin`); add that folder to your `PATH`, or just restart the computer. |
 | `warning: VIRTUAL_ENV=...anaconda3... does not match the project environment` | Harmless. You have Anaconda active in your shell; uv ignores it and correctly uses the project's `.venv`. You can ignore the warning. |
 | `uv sync` fails to download Python or packages | Usually a network/proxy/firewall issue. Retry on a stable connection. Behind a corporate proxy, set the `HTTPS_PROXY` environment variable first. |
